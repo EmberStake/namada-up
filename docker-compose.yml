@@ -1,0 +1,98 @@
+services:
+  node:
+    image: ${NAMADA_DOCKER_IMAGE_REGISTRY:-ghcr.io/emberstake/namada-up}/node:${NODE_TAG:-v0.44.1}
+    build:
+      dockerfile: docker/node/Dockerfile
+      context: .
+    restart: unless-stopped
+    profiles:
+      - node
+    networks:
+      namada-up:
+    environment:
+      - NAMADA_LEDGER__COMETBFT__P2P__LADDR=tcp://0.0.0.0:26656
+      - NAMADA_LEDGER__COMETBFT__RPC__LADDR=tcp://0.0.0.0:26657
+      - NAMADA_LEDGER__COMETBFT__P2P__EXTERNAL_ADDRESS=${NAMADA_LEDGER__COMETBFT__P2P__EXTERNAL_ADDRESS}:${NODE_P2P_PORT}
+    env_file:
+      - .env
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+    command:
+      - node
+      - ledger
+      - run
+    volumes:
+      - type: volume
+        source: node
+        target: /home/pilot/.local/share/namada
+      - type: volume
+        source: masp
+        target: /home/pilot/.masp-params
+    ports:
+      - "${NODE_P2P_PORT}:26656" # p2p
+      - "${NODE_RPC_IP:-127.0.0.1}:${NODE_RPC_PORT}:26657"
+
+  namada-exporter:
+    image: ${NAMADA_UP_DOCKER_IMAGE_REGISTRY:-ghcr.io/emberstake/namada-up}/namada-exporter:${NAMADA_EXPORTER_TAG:-v0.1.0}
+    build:
+      dockerfile: docker/namada-exporter/Dockerfile
+      context: .
+      args:
+        - NAMADA_EXPORTER_TAG=${NAMADA_EXPORTER_TAG:-v0.1.0}
+    profiles:
+      - monitoring
+      - namada-exporter
+    env_file:
+      - .env
+    expose:
+      - "3000"
+    networks:
+      namada-up:
+
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    profiles:
+      - monitoring
+      - prometheus
+    networks:
+      namada-up:
+    expose:
+      - "9090"
+    volumes:
+      - ./configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-storage:/prometheus
+  grafana:
+    image: grafana/grafana:11.3.0-ubuntu
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:-admin}
+      GF_LOG_LEVEL: error
+      GF_ANALYTICS_ENABLED: false
+      GF_ANALYTICS_REPORTING_ENABLED: false
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: false
+      GF_ANALYTICS_CHECK_FOR_UPDATES: false
+      GF_ANALYTICS_FEEDBACK_LINKS_ENABLED: false
+      GF_SECURITY_DISABLE_GRAVATAR: true
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/provisioning/dashboards-data/main.json
+      GF_NEWS_NEWS_FEED_ENABLED: false
+    profiles:
+      - monitoring
+      - grafana
+    networks:
+      namada-up:
+    expose:
+      - "3000"
+    ports:
+      - "${GF_PORT:-23000}:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./configs/grafana/provisioning:/etc/grafana/provisioning
+volumes:
+  node:
+  masp:
+  grafana-storage:
+  prometheus-storage:
+networks:
+  namada-up:
