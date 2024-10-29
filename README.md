@@ -2,6 +2,8 @@
 # Namada-UP !
 This repository is a set of docker images and tools to let you run Namada Node with out of the box Monitoring dashboard in a matter of seconds!
 
+Thanks to  MELLIFERA-Labs for  [Namada-exporter](https://github.com/MELLIFERA-Labs/namada-exporter) and [CometBFT](https://github.com/cometbft/cometbft) for dashboards
+
 This file will be turned into a detailed guide very soon. Stay tuned.
 
 ### init
