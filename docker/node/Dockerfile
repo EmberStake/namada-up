@@ -52,11 +52,12 @@ RUN apt-get update && apt-get install -y \
     gawk \
     iputils-ping \
     iproute2 \
+    bash-completion \
     && apt-get clean
+
 
 # Create oeprator user
 RUN useradd -m pilot
-USER pilot
 
 COPY --chown=pilot:pilot --from=genesis-builder /__w/namada/namada/wasm/*.wasm /__w/namada/namada/wasm/*.json /home/pilot/wasm/
 
@@ -65,11 +66,14 @@ COPY --chown=pilot:pilot --from=genesis-builder /__w/namada/namada/target/releas
 COPY --chown=pilot:pilot --from=genesis-builder /__w/namada/namada/target/release/namadaw /usr/local/bin
 COPY --chown=pilot:pilot --from=genesis-builder /__w/namada/namada/target/release/namadac /usr/local/bin
 COPY --chown=pilot:pilot --from=tendermint-builder /app/cometbft/build/cometbft /usr/local/bin
-COPY --chown=pilot:pilot --chmod=700 docker/node/entrypoint.sh /opt/entrypoint.sh
 
+# Set up bash completion for Namada
+RUN namada complete --shell bash > /usr/share/bash-completion/completions/namada.bash
+RUN echo 'if ! shopt -oq posix; then\n  if [ -f /usr/share/bash-completion/bash_completion ]; then\n    . /usr/share/bash-completion/bash_completion\n  fi\nfi' >> /etc/bash.bashrc
+
+USER pilot
 RUN mkdir /home/pilot/.masp-params
 WORKDIR /home/pilot/.local/share/namada
 
-# This entrypoint is a workaround to this issue https://github.com/anoma/namada/issues/3953
-ENTRYPOINT ["/opt/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/namada"]
 CMD ["--help"]
