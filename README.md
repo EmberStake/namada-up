@@ -1,36 +1,18 @@
 
 # Namada-UP !
-This repository is a set of docker images and tools to let you run Namada Node with out of the box Monitoring dashboard in a matter of seconds!
+This repository is a set of docker images and tools to let you run [Namada](https://docs.namada.net/) Node with out-of-box Monitoring dashboard in a matter of seconds!
 
-Thanks to  MELLIFERA-Labs for  [Namada-exporter](https://github.com/MELLIFERA-Labs/namada-exporter) and [CometBFT](https://github.com/cometbft/cometbft) for dashboards
+### Services
+- Namada node docker image
+- Prometheus
+- Grafana with preloaded dashboards
+- [Namada-exporter](https://github.com/MELLIFERA-Labs/namada-exporter) (By MELLIFERA-Labs )
 
-This file will be turned into a detailed guide very soon. Stay tuned.
-
-### init
-set .env variables
-
-run ephemeral container
-NAMADA_NETWORK_CONFIGS_SERVER
-NODE_P2P_PORT
-NODE_RPC_PORT
-NAMADA_LEDGER__CHAIN_ID
-NAMADA_LEDGER__COMETBFT__P2P__EXTERNAL_ADDRESS
-NAMADA_LEDGER__COMETBFT__P2P__PERSISTENT_PEERS
-or
-NAMADA_LEDGER__COMETBFT__P2P__SEEDS
+### Upcoming services
+- Node exporter
+- Alertmanager (with telegram support)
+- More dashboards
 
 
-```bash
-docker compose --profile node run --rm --entrypoint /bin/bash  node
-```
-when insdie
-```bash
-namadac utils join-network --chain-id $NAMADA_LEDGER__CHAIN_ID
-```
-then exit
-
-now run the node 
-
-```bash
-docker compose --profile node up -d
-```
+## How to use
+Detailed documentations can be found at https://docs.emberstake.xyz/networks/namada/nodes-guide/getting-started
