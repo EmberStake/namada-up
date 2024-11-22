@@ -1,11 +1,11 @@
 services:
   node:
-    image: ${NAMADA_DOCKER_IMAGE_REGISTRY:-ghcr.io/emberstake/namada-up}/node:${NODE_TAG:-v0.45.1}
+    image: ${NAMADA_DOCKER_IMAGE_REGISTRY:-ghcr.io/emberstake/namada-up}/node:${NODE_TAG:-v0.46.0}
     build:
       dockerfile: docker/node/Dockerfile
       context: .
       args:
-        - NAMADA_TAG=${NODE_TAG:-v0.45.1}
+        - NAMADA_TAG=${NODE_TAG:-v0.46.0}
     restart: unless-stopped
     profiles:
       - node
