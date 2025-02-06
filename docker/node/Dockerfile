@@ -32,7 +32,7 @@ WORKDIR /app
 
 RUN git clone https://github.com/cometbft/cometbft.git
 WORKDIR cometbft
-RUN git checkout v0.37.11
+RUN git checkout v0.37.15
 RUN make build
 
 FROM debian:bookworm-slim AS runtime
