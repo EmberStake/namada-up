@@ -5,3 +5,4 @@
 !.env.sample
 /overrides/
 docker-compose.override*
+.qodo
