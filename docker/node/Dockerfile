@@ -1,8 +1,8 @@
-FROM rust:1.81.0-bookworm AS genesis-builder
+FROM rust:1.85.1-bookworm AS genesis-builder
 USER root
 WORKDIR /__w/namada
 # The version should be matching the version set above
-RUN rustup toolchain install 1.81.0 --profile minimal
+RUN rustup toolchain install 1.85.1 --profile minimal
 RUN rustup target add wasm32-unknown-unknown
 
 RUN apt-get update && apt-get install -y \
@@ -27,13 +27,32 @@ WORKDIR /__w/namada/namada
 RUN make build-release
 RUN make build-wasm-scripts
 
-FROM golang:1.23-bookworm as tendermint-builder
+FROM golang:1.23-bookworm AS cometbft-builder
 WORKDIR /app
 
-RUN git clone https://github.com/cometbft/cometbft.git
+RUN git clone -b v0.37.15 https://github.com/cometbft/cometbft.git
 WORKDIR cometbft
-RUN git checkout v0.37.15
 RUN make build
+
+# TODO : remove this stage in the next version
+FROM rust:1.85.1-bookworm AS masp-migration-builder
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    build-essential \
+    gcc-multilib \
+    protobuf-compiler \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -LO https://golang.org/dl/go1.22.0.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz && \
+    rm go1.22.0.linux-amd64.tar.gz
+ENV PATH="/usr/local/go/bin:$PATH"
+WORKDIR /app
+RUN git clone https://github.com/heliaxdev/migrate-masp-events
+WORKDIR migrate-masp-events
+RUN make CGO_LDFLAGS="-lm -ldl"
 
 FROM debian:bookworm-slim AS runtime
 
@@ -65,7 +84,9 @@ COPY --chown=pilot:pilot --from=genesis-builder /__w/namada/namada/target/releas
 COPY --chown=pilot:pilot --from=genesis-builder /__w/namada/namada/target/release/namadan /usr/local/bin
 COPY --chown=pilot:pilot --from=genesis-builder /__w/namada/namada/target/release/namadaw /usr/local/bin
 COPY --chown=pilot:pilot --from=genesis-builder /__w/namada/namada/target/release/namadac /usr/local/bin
-COPY --chown=pilot:pilot --from=tendermint-builder /app/cometbft/build/cometbft /usr/local/bin
+COPY --chown=pilot:pilot --from=cometbft-builder /app/cometbft/build/cometbft /usr/local/bin
+# TODO: remove this in the next version
+COPY --chown=pilot:pilot --from=masp-migration-builder /app/migrate-masp-events/migrate-masp-events /usr/local/bin
 
 # Set up bash completion for Namada
 RUN namada complete --shell bash > /usr/share/bash-completion/completions/namada.bash
