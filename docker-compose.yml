@@ -1,11 +1,11 @@
 services:
   node:
-    image: ${NAMADA_DOCKER_IMAGE_REGISTRY:-ghcr.io/emberstake/namada-up}/node:${NODE_TAG:-v1.1.5}
+    image: ${NAMADA_DOCKER_IMAGE_REGISTRY:-ghcr.io/emberstake/namada-up}/node:${NODE_TAG:-v101.0.0}
     build:
       dockerfile: docker/node/Dockerfile
       context: .
       args:
-        - NAMADA_TAG=${NODE_TAG:-v1.1.5}
+        - NAMADA_TAG=${NODE_TAG:-v101.0.0}
     restart: unless-stopped
     profiles:
       - node
@@ -37,12 +37,12 @@ services:
       - "${NODE_RPC_IP:-127.0.0.1}:${NODE_RPC_PORT}:26657"
 
   namada-exporter:
-    image: ${NAMADA_UP_DOCKER_IMAGE_REGISTRY:-ghcr.io/emberstake/namada-up}/namada-exporter:${NAMADA_EXPORTER_TAG:-v0.1.0}
+    image: ${NAMADA_UP_DOCKER_IMAGE_REGISTRY:-ghcr.io/emberstake/namada-up}/namada-exporter:${NAMADA_EXPORTER_TAG:-v0.2.0}
     build:
       dockerfile: docker/namada-exporter/Dockerfile
       context: .
       args:
-        - NAMADA_EXPORTER_TAG=${NAMADA_EXPORTER_TAG:-v0.1.0}
+        - NAMADA_EXPORTER_TAG=${NAMADA_EXPORTER_TAG:-v0.2.0}
     restart: unless-stopped
     profiles:
       - monitoring

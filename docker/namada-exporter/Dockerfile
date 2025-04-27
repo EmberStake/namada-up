@@ -1,39 +1,3 @@
-# Stage 1: Build environment
-FROM oven/bun:1-debian AS builder
-
-# Install Rust and cargo
-RUN apt-get update && apt-get install -y \
-    curl \
-    build-essential \
-    git \
-    protobuf-compiler \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Rust using rustup
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
-RUN rustup target add wasm32-unknown-unknown
-
-# Set working directory
-WORKDIR /app
-ARG NAMADA_EXPORTER_TAG
-# Clone repository
-RUN git clone -b $NAMADA_EXPORTER_TAG https://github.com/MELLIFERA-Labs/namada-exporter.git .
-
-# Install and build shared dependencies
-WORKDIR /app/shared
-RUN bun install
-RUN bun run prepublish
-
-# Install exporter dependencies
-WORKDIR /app/exporter
-RUN bun install --production --frozen-lockfile
-
-# Build the binary
-WORKDIR /app
-RUN bun build ./exporter/src/index.ts --compile --outfile namada-exporter
-
-# Stage 2: Runtime environment
 FROM debian:bookworm-slim
 
 # Install required runtime dependencies (if any)
@@ -43,7 +7,11 @@ RUN apt-get update && apt-get install -y \
 
 RUN useradd -m exporter
 
-COPY --from=builder --chown=exporter:exporter --chmod=700 /app/namada-exporter /usr/local/bin/namada-exporter
+ADD https://github.com/MELLIFERA-Labs/namada-exporter/releases/download/v0.2.0/namada-exporter /usr/local/bin/namada-exporter
+RUN echo "26da1469ce54e5256dbe8e59e98462b14f89003bd18d40e3f924938b641a7988 /usr/local/bin/namada-exporter" | sha256sum -c \
+    && chown exporter:exporter /usr/local/bin/namada-exporter \
+    && chmod 700 /usr/local/bin/namada-exporter
+
 COPY --chown=exporter:exporter --chmod=700 docker/namada-exporter/entrypoint.sh /opt/entrypoint.sh
 
 USER exporter
