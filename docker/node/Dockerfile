@@ -30,7 +30,7 @@ RUN make build-wasm-scripts
 FROM golang:1.23-bookworm AS cometbft-builder
 WORKDIR /app
 
-RUN git clone -b v0.37.15 https://github.com/cometbft/cometbft.git
+RUN git clone -b v0.37.16 https://github.com/cometbft/cometbft.git
 WORKDIR cometbft
 RUN make build
 
