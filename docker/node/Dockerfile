@@ -7,7 +7,7 @@ RUN rustup target add wasm32-unknown-unknown
 
 RUN apt-get update && apt-get install -y \
     build-essential \
-    clang-tools-14 \
+    clang-14 \
     git \
     libssl-dev \
     pkg-config \
