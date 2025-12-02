@@ -5,8 +5,10 @@ WORKDIR /__w/namada
 RUN rustup toolchain install 1.85.1 --profile minimal
 RUN rustup target add wasm32-unknown-unknown
 
+ENV CC=clang-14
 RUN apt-get update && apt-get install -y \
     build-essential \
+    clang-tools-14 \
     clang-14 \
     git \
     libssl-dev \
